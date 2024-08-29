@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaire de Rapport Journalier</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"], input[type="date"], input[type="time"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .report-output {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .pharmacy-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f7f7f7;
+        }
+        .product-group {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rapport Journalier</h1>
+        <form id="dailyReportForm" onsubmit="return validateForm()">
+            <div id="pharmacyContainer">
+                <div class="pharmacy-group">
+                    <div class="form-group">
+                        <label for="pharmacyName">Nom de la Pharmacie :</label>
+                        <input type="text" id="pharmacyName" name="pharmacyName" placeholder="Nom de la pharmacie" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pharmacyAddress">Adresse de la Pharmacie :</label>
+                        <input type="text" id="pharmacyAddress" name="pharmacyAddress" placeholder="Adresse complète de la pharmacie" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="visitDate">Date de la Visite :</label>
+                        <input type="date" id="visitDate" name="visitDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="visitTime">Heure de la Visite :</label>
+                        <input type="time" id="visitTime" name="visitTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="actions">Actions en Pharmacie :</label>
+                        <textarea id="actions" name="actions" rows="3" placeholder="Ex: Mise en place de Ebastel 10mg/20mg" required></textarea>
+                    </div>
+                    <div id="productContainer" class="product-group">
+                        <label>Produits :</label>
+                        <div class="form-group">
+                            <select name="productName" required>
+                                <option value="">Sélectionnez un produit</option>
+                                <option value="Ebastel">Ebastel</option>
+                                <option value="Sekisan">Sekisan</option>
+                                <option value="Airtal">Airtal</option>
+                                <option value="Flatoril">Flatoril</option>
+                                <option value="Cidine">Cidine</option>
+                                <option value="Almax Forte">Almax Forte</option>
+                                <option value="Almax Suspension Orale">Almax Suspension Orale</option>
+                                <option value="Blokium">Blokium</option>
+                                <option value="Decoderm Tri">Decoderm Tri</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dose">Dose (mg/g) :</label>
+                            <input type="text" name="dose" placeholder="Ex: 10mg" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity">Quantité :</label>
+                            <input type="number" name="quantity" placeholder="Quantité de boîtes" required>
+                        </div>
+                        <button type="button" onclick="addProduct(this)">Ajouter un autre Produit</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="additionalNotes">Notes Supplémentaires :</label>
+                        <textarea id="additionalNotes" name="additionalNotes" rows="3" placeholder="Ajoutez des notes ou des observations supplémentaires"></textarea>
+                    </div>
+                </div>
+            </div>
+            <button type="button" onclick="addPharmacy()">Ajouter une autre Pharmacie</button>
+            <div class="form-group">
+                <label for="prescripteurs">Nombre de Prescripteurs :</label>
+                <input type="number" id="prescripteurs" name="prescripteurs" required min="0">
+            </div>
+            <button type="submit">Générer le Rapport</button>
+        </form>
+
+        <div id="reportOutput" class="report-output" style="display:none;"></div>
+    </div>
+
+    <script>
+        function addPharmacy() {
+            const pharmacyContainer = document.getElementById('pharmacyContainer');
+            const pharmacyGroup = document.querySelector('.pharmacy-group').cloneNode(true);
+            pharmacyGroup.querySelectorAll('input, select, textarea').forEach(input => input.value = '');
+            pharmacyContainer.appendChild(pharmacyGroup);
+        }
+
+        function addProduct(button) {
+            const productGroup = button.closest('.product-group');
+            const newProductGroup = productGroup.cloneNode(true);
+            newProductGroup.querySelectorAll('input, select').forEach(input => input.value = '');
+            productGroup.after(newProductGroup);
+        }
+
+        function validateForm() {
+            const pharmacyGroups = document.querySelectorAll('.pharmacy-group');
+            let isValid = true;
+
+            pharmacyGroups.forEach(group => {
+                const pharmacyName = group.querySelector('input[name="pharmacyName"]').value.trim();
+                const pharmacyAddress = group.querySelector('input[name="pharmacyAddress"]').value.trim();
+                const visitDate = group.querySelector('input[name="visitDate"]').value;
+                const visitTime = group.querySelector('input[name="visitTime"]').value;
+
+                if (!pharmacyName || !pharmacyAddress || !visitDate || !visitTime) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                alert('Veuillez remplir tous les champs requis.');
+                return false;
+            }
+
+            generateReport();
+            return false; // Empêche la soumission du formulaire pour afficher le rapport généré
+        }
+
+        function generateReport() {
+            const pharmacyGroups = document.querySelectorAll('.pharmacy-group');
+            const prescripteurs = document.getElementById('prescripteurs').value;
+            let report = `Bonsoir à tous,\n\nMon rapport de la journée :\n\n`;
+
+            pharmacyGroups.forEach((group, index) => {
+                const pharmacyName = group.querySelector('input[name="pharmacyName"]').value;
+                const pharmacyAddress = group.querySelector('input[name="pharmacyAddress"]').value;
+                const visitDate = group.querySelector('input[name="visitDate"]').value;
+                const visitTime = group.querySelector('input[name="visitTime"]').value;
+                const actions = group.querySelector('textarea[name="actions"]').value;
+                const additionalNotes = group.querySelector('textarea[name="additionalNotes"]').value;
+
+                report += `Pharmacie ${index + 1} : ${pharmacyName}\n`;
+                report += `Adresse : ${pharmacyAddress}\n`;
+                report += `Date de la Visite : ${visitDate}, Heure : ${visitTime}\n`;
+                report += `Actions : ${actions}\n`;
+
+                const productGroups = group.querySelectorAll('.product-group');
+                productGroups.forEach((productGroup, pIndex) => {
+                    const productName = productGroup.querySelector('select[name="productName"]').value;
+                    const dose = productGroup.querySelector('input[name="dose"]').value;
+                    const quantity = productGroup.querySelector('input[name="quantity"]').value;
+
+                    report += `Produit ${pIndex + 1} : ${productName}, Dose : ${dose}, Quantité : ${quantity}\n`;
+                });
+
+                if (additionalNotes) {
+                    report += `Notes Supplémentaires : ${additionalNotes}\n`;
+                }
+
+                report += `\n`;
+            });
+
+            report += `Nombre de Prescripteurs : ${prescripteurs}\n`;
+
+            const reportOutput = document.getElementById('reportOutput');
+            reportOutput.style.display = 'block';
+            reportOutput.textContent = report;
+        }
+    </script>
+</body>
+</html>
